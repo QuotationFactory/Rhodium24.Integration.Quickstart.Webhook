@@ -1,13 +1,13 @@
 <Project>
   <ItemGroup>
     <PackageManagement Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
-    <PackageManagement Include="Serilog" Version="2.10.0" />
-    <PackageManagement Include="Serilog.Extensions.Hosting" Version="4.1.2" />
-    <PackageManagement Include="Serilog.Sinks.Console" Version="4.0.0" />
-    <PackageManagement Include="Swashbuckle.AspNetCore" Version="5.6.3"/>
-    <PackageManagement Include="Newtonsoft.Json" Version="13.0.1"/>
-    <PackageManagement Include="RestSharp" Version="106.12.0"/>
-    <PackageManagement Include="MetalHeaven.Versioned.DataContracts" Version="0.1.258"/>
+    <PackageManagement Include="Serilog" Version="2.12.0" />
+    <PackageManagement Include="Serilog.Extensions.Hosting" Version="5.0.1" />
+    <PackageManagement Include="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageManagement Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
+    <PackageManagement Include="Newtonsoft.Json" Version="13.0.2"/>
+    <PackageManagement Include="RestSharp" Version="108.0.3"/>
+    <PackageManagement Include="MetalHeaven.ExternalDataContracts" Version="0.1.333"/>
   </ItemGroup>
 
 </Project>
