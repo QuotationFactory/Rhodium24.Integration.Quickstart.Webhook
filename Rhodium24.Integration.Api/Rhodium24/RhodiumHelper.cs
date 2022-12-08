@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using NodaMoney;
 using RestSharp;
-using UnitsNet.Serialization.JsonNet;
-using Versioned.Common.DataContracts.Json.Converters;
-using Versioned.DataContracts.Contracts.Project;
-using Versioned.DataContracts.Json.UoM;
+using Versioned.ExternalDataContracts;
+using Versioned.ExternalDataContracts.Contracts.Project;
 
 namespace Rhodium24.Integration.Api.Rhodium24
 {
@@ -24,19 +20,10 @@ namespace Rhodium24.Integration.Api.Rhodium24
             _restClient = new RestClient(settings.Value.ApiUrl);
             _restClient.AddDefaultHeader("Ocp-Apim-Subscription-Key", settings.Value.SubscriptionKey);
 
-            _projectJsonSerializerSettings = new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.None,
-                NullValueHandling = NullValueHandling.Ignore,
-                Converters = new List<JsonConverter>
-                {
-                    new MoneyJsonConverter(Currency.FromCode("EUR")),
-                    new UnitsNetJsonConverter(),
-                    new MoneyJsonConverter(Currency.FromCode("EUR")),
-                    new QuantityPerQuantityJsonConverter(),
-                    new MoneyPerQuantityJsonConverter(Currency.FromCode("EUR"))
-                }
-            };
+            _projectJsonSerializerSettings = new JsonSerializerSettings();
+            _projectJsonSerializerSettings.SetJsonSettings();
+            _projectJsonSerializerSettings.AddJsonConverters();
+            _projectJsonSerializerSettings.SerializationBinder = new CrossPlatformTypeBinder();
         }
 
         private async Task<string> RetrieveAccessToken()
@@ -48,10 +35,10 @@ namespace Rhodium24.Integration.Api.Rhodium24
             if (string.IsNullOrEmpty(_settings.Audience)) throw new ArgumentNullException(nameof(_settings.Audience), "Rhodium settings audience is not set");
 
             var client = new RestClient(_settings.TokenUrl);
-            var request = new RestRequest(Method.POST);
+            var request = new RestRequest();
             request.AddHeader("content-type", "application/x-www-form-urlencoded");
             request.AddParameter("application/x-www-form-urlencoded", $"grant_type=client_credentials&client_id={_settings.ClientId}&client_secret={_settings.ClientSecret}&audience={_settings.Audience}", ParameterType.RequestBody);
-            var response = await client.ExecuteAsync(request);
+            var response = await client.ExecuteAsync(request, Method.Post);
 
             if (!response.IsSuccessful)
                 throw new Exception("Error retrieving new access token", response.ErrorException);
@@ -72,10 +59,10 @@ namespace Rhodium24.Integration.Api.Rhodium24
         {
             var token = await RetrieveAccessToken();
 
-            var request = new RestRequest($"parties/{partyId}/projects/{projectId}/documents/{fileName}", Method.GET);
+            var request = new RestRequest($"parties/{partyId}/projects/{projectId}/documents/{fileName}");
             request.AddHeader("Authorization", $"Bearer {token}");
 
-            var response = await _restClient.ExecuteAsync(request);
+            var response = await _restClient.ExecuteAsync(request, Method.Get);
 
             if (!response.IsSuccessful)
                 throw new Exception($"Error while retrieving document partyId: {partyId}, projectId:{projectId}, fileName:{fileName}");
@@ -83,19 +70,19 @@ namespace Rhodium24.Integration.Api.Rhodium24
             return Convert.FromBase64String(response.Content);
         }
 
-        public async Task<ProjectV3> GetProject(Guid partyId, Guid projectId)
+        public async Task<ProjectV1> GetProject(Guid partyId, Guid projectId)
         {
             var token = await RetrieveAccessToken();
 
-            var request = new RestRequest($"parties/{partyId}/projects/{projectId}", Method.GET);
+            var request = new RestRequest($"parties/{partyId}/projects/{projectId}");
             request.AddHeader("Authorization", $"Bearer {token}");
 
-            var response = await _restClient.ExecuteAsync(request);
+            var response = await _restClient.ExecuteAsync(request, Method.Get);
 
             if (!response.IsSuccessful)
                 throw new Exception($"Error while retrieving project partyId: {partyId}, projectId:{projectId}");
 
-            var project = JsonConvert.DeserializeObject<ProjectV3>(response.Content, _projectJsonSerializerSettings);
+            var project = JsonConvert.DeserializeObject<ProjectV1>(response.Content, _projectJsonSerializerSettings);
             return project;
         }
     }

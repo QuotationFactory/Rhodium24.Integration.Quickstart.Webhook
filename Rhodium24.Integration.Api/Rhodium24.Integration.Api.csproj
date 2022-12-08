@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MetalHeaven.Versioned.DataContracts" />
+    <PackageReference Include="MetalHeaven.ExternalDataContracts" />
     <PackageReference Include="RestSharp" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="Serilog" />
